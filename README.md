@@ -1,6 +1,10 @@
 Pikaday
 ========
 
+Very crude version using (almost) only momentjs.
+
+This fork only works on a single moment instance internally.
+
 ### A refreshing JavaScript Datepicker
 
 * Lightweight (less than 5kb minified and gzipped)
@@ -11,7 +15,7 @@ Pikaday
 
 ![Pikaday Screenshot][screenshot]
 
-**Production ready?** Since version 1.0.0 Pikaday is stable and used in production. If you do however find bugs or have feature requests please submit them to the [GitHub issue tracker][issues].  
+**Production ready?** Since version 1.0.0 Pikaday is stable and used in production. If you do however find bugs or have feature requests please submit them to the [GitHub issue tracker][issues].
 Also see the [changelog](CHANGELOG.md)
 
 
@@ -50,7 +54,7 @@ var picker = new Pikaday({
 field.parentNode.insertBefore(picker.el, field.nextSibling);
 ```
 
-For advanced formatting load [Moment.js][moment] prior to Pikaday:  
+For advanced formatting load [Moment.js][moment] prior to Pikaday:
 See the [moment.js example][] for a full version.
 
 ```html
@@ -95,7 +99,7 @@ Pikaday has many useful options:
 
 ## jQuery Plugin
 
-The normal version of Pikaday does not require jQuery, however there is a jQuery plugin if that floats your boat (see `plugins/pikaday.jquery.js` in the repository). This version requires jQuery, naturally, and can be used like other plugins:  
+The normal version of Pikaday does not require jQuery, however there is a jQuery plugin if that floats your boat (see `plugins/pikaday.jquery.js` in the repository). This version requires jQuery, naturally, and can be used like other plugins:
 See the [jQuery example][] for a full version.
 
 ```html
@@ -115,7 +119,7 @@ $('.datepicker').eq(0).pikaday('show').pikaday('gotoYear', 2042);
 
 ## AMD support
 
-If you use a modular script loader than Pikaday is not bound to the global object and will fit nicely in your build process. You can require Pikaday just like any other module.  
+If you use a modular script loader than Pikaday is not bound to the global object and will fit nicely in your build process. You can require Pikaday just like any other module.
 See the [AMD example][] for a full version.
 
 ```javascript
@@ -123,7 +127,7 @@ require(['pikaday'], function(Pikaday) {
     var picker = new Pikaday({ field: document.getElementById('datepicker') });
 });
 ```
-The same applies for the jQuery plugin mentioned above.  
+The same applies for the jQuery plugin mentioned above.
 See the [jQuery AMD example][] for a full version.
 
 ```javascript
@@ -240,10 +244,10 @@ You must provide 12 months and 7 weekdays (with abbreviations). Always specify w
 
 ### Timepicker
 
-Pikaday is a pure datepicker. It will not support picking a time of day. However, there have been efforts to add time support to Pikaday.  
+Pikaday is a pure datepicker. It will not support picking a time of day. However, there have been efforts to add time support to Pikaday.
 See [#1][issue1] and [#18][issue18]. These reside in their own fork.
 
-You can use the work [@stas][stas] did at [stas/Pikaday][stas Pika]  
+You can use the work [@stas][stas] did at [stas/Pikaday][stas Pika]
 or the work [@owenmead][owenmead] did more recently at [owenmead/Pikaday][owen Pika] which is based on version 1.1.0.
 
 

@@ -25,17 +25,25 @@
 
     <p class="small">Copyright © 2013 <a href="http://dbushell.com/">David Bushell</a> | BSD &amp; MIT license | Made for <a href="http://www.browserlondon.com/">Browser</a></p>
 
-
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.1.0/moment.min.js"></script>
     <script src="pikaday.js"></script>
     <script>
 
+    var m = moment();
+    window.foo = m;
     var picker = new Pikaday(
     {
         field: document.getElementById('datepicker'),
         firstDay: 1,
-        minDate: new Date('2000-01-01'),
-        maxDate: new Date('2020-12-31'),
-        yearRange: [2000,2020]
+        minDate: m.clone().subtract('days', 1),
+        defaultMoment: m,
+        setDefaultMoment: true,
+        // yearRange: [2000,2020],
+        onSelect: function() {
+            window.bar = this.getMoment();
+            console.log(m, this.getMoment());
+            console.log(m === this.getMoment());
+        }
     });
 
     </script>

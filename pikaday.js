@@ -97,10 +97,10 @@
         return (/Array/).test(Object.prototype.toString.call(obj));
     },
 
-    isDate = function(obj)
-    {
-        return (/Date/).test(Object.prototype.toString.call(obj)) && !isNaN(obj.getTime());
-    },
+    // isDate = function(obj)
+    // {
+    //     return (/Date/).test(Object.prototype.toString.call(obj)) && !isNaN(obj.getTime());
+    // },
 
     isLeapYear = function(year)
     {
@@ -113,15 +113,9 @@
         return [31, isLeapYear(year) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month];
     },
 
-    setToStartOfDay = function(date)
-    {
-        if (isDate(date)) date.setHours(0,0,0,0);
-    },
-
     compareDates = function(a,b)
     {
-        // weak date comparison (use setToStartOfDay(date) to ensure correct result)
-        return a.getTime() === b.getTime();
+        return a.isSame(b, 'day');
     },
 
     extend = function(to, from, overwrite)
@@ -130,9 +124,9 @@
         for (prop in from) {
             hasProp = to[prop] !== undefined;
             if (hasProp && typeof from[prop] === 'object' && from[prop].nodeName === undefined) {
-                if (isDate(from[prop])) {
+                if (moment.isMoment(from[prop])) {
                     if (overwrite) {
-                        to[prop] = new Date(from[prop].getTime());
+                        to[prop] = from[prop];
                     }
                 }
                 else if (isArray(from[prop])) {
@@ -165,10 +159,10 @@
         format: 'YYYY-MM-DD',
 
         // the initial date to view when first opened
-        defaultDate: null,
+        defaultMoment: null,
 
-        // make the `defaultDate` the initial selected value
-        setDefaultDate: false,
+        // make the `defaultMoment` the initial selected value
+        setDefaultMoment: false,
 
         // first day of week (0: Sunday, 1: Monday etc)
         firstDay: 0,
@@ -348,7 +342,7 @@
 
             if (!hasClass(target, 'is-disabled')) {
                 if (hasClass(target, 'pika-button') && !hasClass(target, 'is-empty')) {
-                    self.setDate(new Date(self._y, self._m, parseInt(target.innerHTML, 10)));
+                    self.setMoment(moment([self._y, self._m, parseInt(target.innerHTML, 10)]));
                     if (opts.bound) {
                         sto(function() {
                             self.hide();
@@ -392,19 +386,17 @@
 
         self._onInputChange = function(e)
         {
-            var date;
+            var m;
 
             if (e.firedBy === self) {
                 return;
             }
-            if (hasMoment) {
-                date = moment(opts.field.value, opts.format);
-                date = (date && date.isValid()) ? date.toDate() : null;
-            }
-            else {
-                date = new Date(Date.parse(opts.field.value));
-            }
-            self.setDate(isDate(date) ? date : null);
+
+            m = moment(opts.field.value, opts.format);
+            m = (m && m.isValid()) ? m : null;
+
+            // UPDATE
+            self.setMoment(m);
             if (!self._v) {
                 self.show();
             }
@@ -469,26 +461,18 @@
             }
             addEvent(opts.field, 'change', self._onInputChange);
 
-            if (!opts.defaultDate) {
-                if (hasMoment && opts.field.value) {
-                    opts.defaultDate = moment(opts.field.value, opts.format).toDate();
-                } else {
-                    opts.defaultDate = new Date(Date.parse(opts.field.value));
-                }
-                opts.setDefaultDate = true;
+            if (!opts.defaultMoment) {
+                opts.defaultMoment = moment(opts.field.value, opts.format);
+                opts.setDefaultMoment = true;
             }
         }
 
-        var defDate = opts.defaultDate;
+        var defDate = opts.defaultMoment;
 
-        if (isDate(defDate)) {
-            if (opts.setDefaultDate) {
-                self.setDate(defDate, true);
-            } else {
-                self.gotoDate(defDate);
-            }
+        if (opts.setDefaultMoment) {
+            self.setMoment(defDate, true);
         } else {
-            self.gotoDate(new Date());
+            self.gotoDate(defDate);
         }
 
         if (opts.bound) {
@@ -532,28 +516,26 @@
             var nom = parseInt(opts.numberOfMonths, 10) || 1;
             opts.numberOfMonths = nom > 4 ? 4 : nom;
 
-            if (!isDate(opts.minDate)) {
+            if (!opts.minDate) {
                 opts.minDate = false;
             }
-            if (!isDate(opts.maxDate)) {
+            if (!opts.maxDate) {
                 opts.maxDate = false;
             }
-            if ((opts.minDate && opts.maxDate) && opts.maxDate < opts.minDate) {
+            if ((opts.minDate && opts.maxDate) && opts.maxDate.isBefore(opts.minDate)) {
                 opts.maxDate = opts.minDate = false;
             }
             if (opts.minDate) {
-                setToStartOfDay(opts.minDate);
-                opts.minYear  = opts.minDate.getFullYear();
-                opts.minMonth = opts.minDate.getMonth();
+                opts.minYear  = opts.minDate.year();
+                opts.minMonth = opts.minDate.month();
             }
             if (opts.maxDate) {
-                setToStartOfDay(opts.maxDate);
-                opts.maxYear  = opts.maxDate.getFullYear();
-                opts.maxMonth = opts.maxDate.getMonth();
+                opts.maxYear  = opts.maxDate.year();
+                opts.maxMonth = opts.maxDate.month();
             }
 
             if (isArray(opts.yearRange)) {
-                var fallback = new Date().getFullYear() - 10;
+                var fallback = moment().year() - 10;
                 opts.yearRange[0] = parseInt(opts.yearRange[0], 10) || fallback;
                 opts.yearRange[1] = parseInt(opts.yearRange[1], 10) || fallback;
             } else {
@@ -571,7 +553,7 @@
          */
         toString: function(format)
         {
-            return !isDate(this._d) ? '' : hasMoment ? moment(this._d).format(format || this._o.format) : this._d.toDateString();
+            return this._moment.format(format || this._o.format);
         },
 
         /**
@@ -579,81 +561,66 @@
          */
         getMoment: function()
         {
-            return hasMoment ? moment(this._d) : null;
-        },
-
-        /**
-         * set the current selection from a Moment.js object (if available)
-         */
-        setMoment: function(date)
-        {
-            if (hasMoment && moment.isMoment(date)) {
-                this.setDate(date.toDate());
-            }
-        },
-
-        /**
-         * return a Date object of the current selection
-         */
-        getDate: function()
-        {
-            return isDate(this._d) ? new Date(this._d.getTime()) : null;
+            return this._moment;
         },
 
         /**
          * set the current selection
          */
-        setDate: function(date, preventOnSelect)
+        setMoment: function(m, preventOnSelect)
         {
-            if (!date) {
-                this._d = null;
+            if (!m) {
+                this._moment = null;
                 return this.draw();
             }
-            if (typeof date === 'string') {
-                date = new Date(Date.parse(date));
-            }
-            if (!isDate(date)) {
-                return;
-            }
+            // if (typeof moment === 'string') {
+            //     moment = new Date(Date.parse(moment));
+            // }
+            // if (!isDate(moment)) {
+            //     return;
+            // }
 
             var min = this._o.minDate,
                 max = this._o.maxDate;
 
-            if (isDate(min) && date < min) {
-                date = min;
-            } else if (isDate(max) && date > max) {
-                date = max;
+            // if (isDate(min) && moment < min) {
+            //     moment = min;
+            // } else if (isDate(max) && moment > max) {
+            //     moment = max;
+            // }
+
+            if (!this._moment) {
+                this._moment = m;
+            } else {
+                this._moment.date(m.date())
+                            .month(m.month())
+                            .year(m.year());
             }
 
-            this._d = new Date(date.getTime());
-            setToStartOfDay(this._d);
-            this.gotoDate(this._d);
+            this.gotoDate(this._moment);
 
             if (this._o.field) {
                 this._o.field.value = this.toString();
                 fireEvent(this._o.field, 'change', { firedBy: this });
             }
             if (!preventOnSelect && typeof this._o.onSelect === 'function') {
-                this._o.onSelect.call(this, this.getDate());
+                this._o.onSelect.call(this, this.getMoment());
             }
         },
 
         /**
          * change view to a specific date
          */
-        gotoDate: function(date)
+        gotoDate: function(m)
         {
-            if (!isDate(date)) {
-                return;
-            }
-            this._y = date.getFullYear();
-            this._m = date.getMonth();
+            this._y = m.year();
+            this._m = m.month();
             this.draw();
         },
 
         gotoToday: function()
         {
-            this.gotoDate(new Date());
+            this.gotoDate(moment());
         },
 
         /**
@@ -800,7 +767,6 @@
                 before = new Date(year, month, 1).getDay(),
                 data   = [],
                 row    = [];
-            setToStartOfDay(now);
             if (opts.firstDay > 0) {
                 before -= opts.firstDay;
                 if (before < 0) {
@@ -817,8 +783,8 @@
             {
                 var day = new Date(year, month, 1 + (i - before)),
                     isDisabled = (opts.minDate && day < opts.minDate) || (opts.maxDate && day > opts.maxDate),
-                    isSelected = isDate(this._d) ? compareDates(day, this._d) : false,
-                    isToday = compareDates(day, now),
+                    isSelected = this._moment ? compareDates(moment(day), this._moment) : false,
+                    isToday = compareDates(moment(day), moment(now)),
                     isEmpty = i < before || i >= (days + before);
 
                 row.push(renderDay(1 + (i - before), isSelected, isToday, isDisabled, isEmpty));
