@@ -97,11 +97,6 @@
         return (/Array/).test(Object.prototype.toString.call(obj));
     },
 
-    // isDate = function(obj)
-    // {
-    //     return (/Date/).test(Object.prototype.toString.call(obj)) && !isNaN(obj.getTime());
-    // },
-
     isLeapYear = function(year)
     {
         // solution by Matti Virkkunen: http://stackoverflow.com/a/4881951
@@ -573,21 +568,9 @@
                 this._moment = null;
                 return this.draw();
             }
-            // if (typeof moment === 'string') {
-            //     moment = new Date(Date.parse(moment));
-            // }
-            // if (!isDate(moment)) {
-            //     return;
-            // }
 
             var min = this._o.minDate,
                 max = this._o.maxDate;
-
-            // if (isDate(min) && moment < min) {
-            //     moment = min;
-            // } else if (isDate(max) && moment > max) {
-            //     moment = max;
-            // }
 
             if (!this._moment) {
                 this._moment = m;

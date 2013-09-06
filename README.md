@@ -5,6 +5,8 @@ Very crude version using (almost) only momentjs.
 
 This fork only works on a single moment instance internally.
 
+Not tested in any way.
+
 ### A refreshing JavaScript Datepicker
 
 * Lightweight (less than 5kb minified and gzipped)
